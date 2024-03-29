@@ -1,13 +1,24 @@
 package com.getir.patika.foodcouriers
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.location.Address
+import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
+
+import android.widget.SearchView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.getir.patika.foodcouriers.databinding.ActivityMainBinding
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -19,6 +30,9 @@ import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapCapabilities
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.tasks.Task
+
+import java.util.Locale
 
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -27,15 +41,78 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 //    private lateinit var viewPager2: ViewPager2
 //    private lateinit var pagerAdapter: PagerAdapter
     private lateinit var map: GoogleMap
+    private lateinit var options: MarkerOptions
+
+
     private lateinit var circle: Circle
+
+    private lateinit var binding: ActivityMainBinding
+
+    private lateinit var currentLocation: Location
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.searchView.setOnClickListener {
+            binding.searchView.isIconified = false
+        }
+
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                val location = binding.searchView.query.toString()
+                val listOfAddresses: MutableList<Address>
+
+                val geocoder2 = Geocoder(this@MainActivity)
+                listOfAddresses = geocoder2.getFromLocationName(location, 1)!!
+//                try {
+//
+//
+//                } catch (e: IOException) {
+//                    e.printStackTrace()
+//                }
+
+                val address = listOfAddresses.get(0)
+                val latLng = LatLng(address.latitude, address.longitude)
+              //  options = MarkerOptions().position(latLng).title(location)
+                options = options.also {
+                    it.position(latLng)
+                    it.title(location)
+                }
 
 
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
-        mapFragment?.getMapAsync(this)
+                map.addMarker(options)
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,18f))
+                drawCircle(latLng,100.0)
+                val geocoder: Geocoder = Geocoder(this@MainActivity, Locale.getDefault())
+                var addresses: MutableList<Address>
+                try {
+                    @Suppress("DEPRECATION")
+                    addresses = geocoder.getFromLocation(
+                        latLng.latitude,
+                        latLng.longitude,
+                        1
+                    )!!
+                    binding.tvAddress.text = addresses.get(0).getAddressLine(0)
+
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return false
+            }
+        })
+
+
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+        getLastLocation()
 
         // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 //        tabLayout = findViewById(R.id.tab_account)
@@ -60,41 +137,88 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
+    private fun getLastLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                FINE_PERMISSION_CODE
+            )
+            return
+
+        }
+
+        val task: Task<Location> = fusedLocationProviderClient.getLastLocation()
+
+        task.addOnSuccessListener { location ->
+            if (location != null) {
+                currentLocation = location
+
+                val geocoder: Geocoder = Geocoder(this@MainActivity, Locale.getDefault())
+                var addresses: MutableList<Address>
+
+
+                try {
+                    @Suppress("DEPRECATION")
+                    addresses = geocoder.getFromLocation(
+                        currentLocation.latitude,
+                        currentLocation.longitude,
+                        1
+                    )!!
+                    binding.tvAddress.text = addresses.get(0).getAddressLine(0)
+
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+
+                val mapFragment =
+                    supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
+                mapFragment?.getMapAsync(this@MainActivity)
+            }
+        }
+
+
+    }
+
     override fun onMapReady(p0: GoogleMap) {
         map = p0
-        val sydney = LatLng(-33.852, 151.211)
+        val myLocation = LatLng(currentLocation.latitude, currentLocation.longitude)
         val bitmap = generateBitmapDescriptorFromRes(this, R.drawable.icon_marker)
-       // val bitmap = BitmapFactory.decodeResource(resources, R.drawable.icon_marker)
-        val options = MarkerOptions().apply {
-            position(sydney)
-            title("Sydney")
+        // val bitmap = BitmapFactory.decodeResource(resources, R.drawable.icon_marker)
+         options = MarkerOptions().apply {
+            position(myLocation)
+            title("My Location")
             // icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
 
             icon(bitmap)
         }
 
-//        }.also {
-//            icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_marker))
-//        }
-        map.addMarker(options)
-        val capabilities: MapCapabilities = map.getMapCapabilities()
-        if (capabilities.isAdvancedMarkersAvailable) {
-            println("Hi")
-        }
 
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,17.0f))
+
+        map.addMarker(options)
+
+
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 18.0f))
 
 
 
         map.mapType = GoogleMap.MAP_TYPE_NORMAL
 
-        val circlePosition = LatLng(sydney.latitude, sydney.longitude )
+        val circlePosition = LatLng(myLocation.latitude, myLocation.longitude)
 
-        drawCircle(circlePosition,100.0)
-
+        drawCircle(circlePosition, 100.0)
 
 
     }
+
     private fun drawCircle(center: LatLng, radius: Double) {
         // Remove previous circle if exists
         if (::circle.isInitialized) {
@@ -107,8 +231,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 .center(center)
                 .radius(radius)
                 .strokeColor(Color.RED)
-                .fillColor(Color.argb(70, 255, 0, 0))
+                .fillColor(Color.argb(70, 214, 19, 85))
         )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == FINE_PERMISSION_CODE) {
+            if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getLastLocation()
+            } else {
+                Toast.makeText(this, "Location Permission is denied", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
 
