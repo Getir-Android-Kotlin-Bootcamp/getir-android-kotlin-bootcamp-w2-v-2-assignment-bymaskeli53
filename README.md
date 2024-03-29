@@ -11,3 +11,7 @@
 1 - Set Location sayfasının tasarımının kodlanması
 
 2- Sayfa açıldığında haritada mevcut konuma yönlendirilmesi
+
+
+https://github.com/Getir-Android-Kotlin-Bootcamp/getir-android-kotlin-bootcamp-w2-v-2-assignment-bymaskeli53/assets/73062239/a493734f-7da9-4408-9a55-ee2c89a40e0b
+
