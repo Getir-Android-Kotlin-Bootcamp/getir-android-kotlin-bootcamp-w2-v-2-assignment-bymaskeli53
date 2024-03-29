@@ -7,4 +7,6 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string name="api_key">AIzaSyCaQfgz_dbGg5GpbVNCEHWy6G9ftWQLjpw</string>
+    <string name="your_location">Your Location</string>
+    <string name="set_location">Set Location</string>
 </resources>

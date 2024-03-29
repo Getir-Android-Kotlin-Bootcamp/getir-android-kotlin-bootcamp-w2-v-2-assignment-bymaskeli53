@@ -28,7 +28,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MapCapabilities
+
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.Task
 
@@ -37,9 +37,7 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    //    private lateinit var tabLayout: TabLayout
-//    private lateinit var viewPager2: ViewPager2
-//    private lateinit var pagerAdapter: PagerAdapter
+
     private lateinit var map: GoogleMap
     private lateinit var options: MarkerOptions
 
@@ -68,18 +66,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 val location = binding.searchView.query.toString()
                 val listOfAddresses: MutableList<Address>
 
-                val geocoder2 = Geocoder(this@MainActivity)
-                listOfAddresses = geocoder2.getFromLocationName(location, 1)!!
-//                try {
-//
-//
-//                } catch (e: IOException) {
-//                    e.printStackTrace()
-//                }
+                val geocoderToNavigate = Geocoder(this@MainActivity)
+                @Suppress("DEPRECATION")
+                listOfAddresses = geocoderToNavigate.getFromLocationName(location, 1)!!
+
 
                 val address = listOfAddresses.get(0)
                 val latLng = LatLng(address.latitude, address.longitude)
-              //  options = MarkerOptions().position(latLng).title(location)
+
                 options = options.also {
                     it.position(latLng)
                     it.title(location)
@@ -87,8 +81,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
                 map.addMarker(options)
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,18f))
-                drawCircle(latLng,100.0)
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
+                drawCircle(latLng)
                 val geocoder: Geocoder = Geocoder(this@MainActivity, Locale.getDefault())
                 var addresses: MutableList<Address>
                 try {
@@ -114,26 +108,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         getLastLocation()
 
-        // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-//        tabLayout = findViewById(R.id.tab_account)
-//        viewPager2 = findViewById(R.id.viewpager_account)
-//        pagerAdapter = PagerAdapter(supportFragmentManager,lifecycle).apply {
-//            addFragment(CreateAccountFragment())
-//            addFragment(LoginAccountFragment())
-//        }
-//        viewPager2.adapter = pagerAdapter
-//
-//        TabLayoutMediator(tabLayout,viewPager2){ tab, position ->
-//             when(position) {
-//                 0 -> {
-//                     tab.text = "Create Account"
-//                 }
-//                 1 -> {
-//                     tab.text = "Login Account"
-//                 }
-//             }
-//
-//        }.attach()
 
     }
 
@@ -192,11 +166,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         map = p0
         val myLocation = LatLng(currentLocation.latitude, currentLocation.longitude)
         val bitmap = generateBitmapDescriptorFromRes(this, R.drawable.icon_marker)
-        // val bitmap = BitmapFactory.decodeResource(resources, R.drawable.icon_marker)
-         options = MarkerOptions().apply {
+
+        options = MarkerOptions().apply {
             position(myLocation)
             title("My Location")
-            // icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+
 
             icon(bitmap)
         }
@@ -214,13 +188,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val circlePosition = LatLng(myLocation.latitude, myLocation.longitude)
 
-        drawCircle(circlePosition, 100.0)
+        drawCircle(circlePosition)
 
 
     }
 
-    private fun drawCircle(center: LatLng, radius: Double) {
-        // Remove previous circle if exists
+    private fun drawCircle(center: LatLng, radius: Double = 100.0) {
+
         if (::circle.isInitialized) {
             circle.remove()
         }
@@ -249,6 +223,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
     }
+
+
 }
 
 fun generateBitmapDescriptorFromRes(

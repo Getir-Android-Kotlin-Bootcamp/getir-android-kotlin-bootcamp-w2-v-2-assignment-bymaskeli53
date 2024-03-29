@@ -29,12 +29,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your Location"
+                android:text="@string/your_location"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginTop="16dp"
                 android:layout_marginStart="10dp"
-                android:textSize="5sp"
+                android:textSize="12sp"
                 android:textColor="#3B3B3B"
 
                 />
@@ -45,6 +45,7 @@
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/icon_marker"
                 android:text="Istanbul Turkiye "
+                android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -56,7 +57,7 @@
             <androidx.appcompat.widget.AppCompatButton
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Set Location"
+                android:text="@string/set_location"
                 android:textAllCaps="false"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
